@@ -1,0 +1,84 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int   @id @default(autoincrement())
+  email     String   @unique
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  password_hash String
+  Workouts  Workout[]
+  Exercises Exercise[]
+  Goals     Goal[]
+  AI_Recommendations AI_Recommendation[]
+}
+
+model Workout {
+  id          Int     @id @default(autoincrement())
+  user       User     @relation(fields: [userId], references: [id])
+  title       String?
+  description String?
+  date        DateTime
+  createdAt   DateTime @default(now())
+  userId      Int
+  WorkoutEntries WorkoutEntry[]
+}
+
+model Exercise {
+  id          Int      @id @default(autoincrement())
+  user        User     @relation(fields: [userId], references: [id])
+  userId      Int
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  WorkoutEntries WorkoutEntry[]
+}
+
+model WorkoutEntry {
+  id          Int      @id @default(autoincrement())
+  exercise    Exercise @relation(fields: [exerciseId], references: [id])
+  workout     Workout  @relation(fields: [workoutId], references: [id])
+  workoutId   Int
+  exerciseId  Int
+  sets        Json      // array of sets {reps: Int, weight: Float?}
+  duration    Int?      // duration in seconds
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Goal {
+  id          Int      @id @default(autoincrement())
+  user        User     @relation(fields: [userId], references: [id])
+  userId      Int
+  description String
+  targetMetric String
+  progress    Float    @default(0)
+  status      String   @default("active") // active, completed, cancelled
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model AI_Recommendation {
+  id          Int      @id @default(autoincrement())
+  user        User     @relation(fields: [userId], references: [id])
+  userId      Int
+  recommendationText String
+  createdAt   DateTime @default(now())
+}
+
